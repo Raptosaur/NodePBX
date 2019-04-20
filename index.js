@@ -65,7 +65,23 @@ sip.start(options, function(request) {
         break;
       }
       case "INVITE":{
-        //break;
+        var username = sip.parseUri(request.uri).user;
+        var userinfo = registry[username];
+        if (
+          userinfo &&
+          Array.isArray(userinfo.contact) &&
+          userinfo.contact.length > 0
+        ) {
+          // If user is in
+          sip.send(sip.makeResponse(request, 100, 'Trying'));
+          let response = { ...request };
+          response.contact = [{ uri: 'sip:elijah@localhost' }];
+          console.log(response.contact);
+          sip.send(sip.makeResponse(response, 180, 'Ringing'));
+        } else {
+          sip.send(sip.makeResponse(request, 404, 'Not Found'));
+        }
+        break;
       }
       default:{
         sip.send(sip.makeResponse(request, 405, 'Method Not Allowed'));
